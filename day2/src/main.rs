@@ -12,22 +12,7 @@ fn part2() {
     let mut game_powers: Vec<_> = Vec::new();
 
     for line in lines {
-        let mut parts: Vec<&str> = line.split(":").collect();
-        let mut unparsed_turns: Vec<&str> = parts[1].split(";").collect::<Vec<_>>();
-
-        let turns: Vec<Vec<(i32, &str)>> = unparsed_turns
-            .iter()
-            .map(|&grab| {
-                grab.split(',')
-                    .map(|item| {
-                        let grab_parts: Vec<&str> = item.trim().split_whitespace().collect();
-                        let count: i32 = grab_parts[0].parse().unwrap_or(0);
-                        let color = grab_parts[1];
-                        (count, color)
-                    })
-                    .collect()
-            })
-            .collect();
+        let turns = generate_game_turns(line);
 
         let mut color_minimums = HashMap::new();
         color_minimums.insert("red", 0);
@@ -40,10 +25,7 @@ fn part2() {
                 color_minimums.insert(*color, max(*count, *color_minimums.get(*color).unwrap()));
             }
         }
-
         game_powers.push(color_minimums.values().fold(1, |acc, &x| acc * x));
-
-        //println!("{:?}", game_powers);
     }
 
     let answer = game_powers.iter().sum::<i32>();
@@ -59,24 +41,7 @@ fn part1() {
     let lines = include_str!("input.txt").lines();
     let mut num_games = 0;
     for (game_num, line) in lines.enumerate() {
-        let mut parts: Vec<&str> = line.split(":").collect();
-
-        let mut unparsed_turns: Vec<&str> = parts[1].split(";").collect::<Vec<_>>();
-        let turns: Vec<Vec<(i32, &str)>> = unparsed_turns
-            .iter()
-            .map(|&grab| {
-                grab.split(',')
-                    .map(|item| {
-                        let grab_parts: Vec<&str> = item.trim().split_whitespace().collect();
-                        let count: i32 = grab_parts[0].parse().unwrap_or(0);
-                        let color = grab_parts[1];
-                        (count, color)
-                    })
-                    .collect()
-            })
-            .collect();
-
-        //println!("{} {:?}", game_num + 1, turns);
+        let turns = generate_game_turns(line);
 
         'outer: for turn in turns.iter() {
             for (count, color) in turn.iter() {
@@ -87,10 +52,30 @@ fn part1() {
             }
         }
 
-        //println!("{:?}", invalid_game_ids);
         num_games = game_num + 1;
     }
 
     let answer: i32 = ((num_games * (num_games + 1) / 2) - invalid_game_ids.iter().sum::<usize>()) as i32;
     println!("{}", answer);
+}
+
+fn generate_game_turns(line: &str) -> Vec<Vec<(i32, &str)>> {
+    let parts: Vec<&str> = line.split(":").collect();
+
+    let unparsed_turns: Vec<&str> = parts[1].split(";").collect::<Vec<_>>();
+    let turns: Vec<Vec<(i32, &str)>> = unparsed_turns
+        .iter()
+        .map(|&grab| {
+            grab.split(',')
+                .map(|item| {
+                    let grab_parts: Vec<&str> = item.trim().split_whitespace().collect();
+                    let count: i32 = grab_parts[0].parse().unwrap_or(0);
+                    let color = grab_parts[1];
+                    (count, color)
+                })
+                .collect()
+        })
+        .collect();
+
+    return turns;
 }
